@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitación de Boda - Mariuxi & Pedro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Estilos generales */
+    body {
+      background: linear-gradient(135deg, #f5f7fa, #e4efe9);
+      font-family: 'Cormorant Garamond', serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 15px;
+      color: #2c3e50;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      width: 100%;
+      perspective: 1000px;
+    }
+    .envelope {
+      position: relative;
+      width: 100%;
+      height: 520px; /* Aumentado para espacio adicional */
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 1.2s ease;
+    }
+    .envelope.open {
+      transform: rotateX(180deg);
+    }
+    .envelope-front, .envelope-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .envelope-front {
+      background: linear-gradient(45deg, #008080, #00a0a0);
+      color: white;
+      z-index: 2;
+    }
+    .envelope-back {
+      background: #fff;
+      transform: rotateX(180deg);
+      padding: 20px;
+      text-align: center;
+      overflow-y: auto;
+    }
+    .heart {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 60px;
+      color: #ff6b6b;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      z-index: 4;
+    }
+
+    .flap {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 50%;
+      background: #006666;
+      border-radius: 12px 12px 0 0;
+      transform-origin: top;
+      transition: transform 1.2s ease;
+      z-index: 3;
+    }
+    .envelope.open .flap {
+      transform: rotateX(180deg);
+    }
+    .invitation-text {
+      font-size: 22px;
+      font-weight: bold;
+      color: #008080;
+      margin-bottom: 12px;
+    }
+    .names {
+      font-size: 26px;
+      font-weight: bold;
+      color: #008080;
+      margin: 12px 0;
+    }
+    .blessing {
+      font-style: italic;
+      color: #555;
+      font-size: 16px;
+    }
+    .deceased {
+      font-size: 0.8em;
+      vertical-align: super;
+      color: #888;
+    }
+    .event-details {
+      margin: 15px 0;
+      font-size: 15px;
+    }
+    .event-title {
+      font-weight: bold;
+      color: #008080;
+      margin-bottom: 6px;
+      font-size: 17px;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn {
+      padding: 12px 18px;
+      border-radius: 40px;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-location {
+      background: #008080;
+      color: white;
+    }
+    .btn-confirm {
+      background: #25D366;
+      color: white;
+    }
+    .btn-photos {
+      background: #6a11cb;
+      color: white;
+    }
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+    .instruction {
+      margin-top: 20px;
+      font-style: italic;
+      color: #777;
+      font-size: 14px;
+    }
+    
+    /* Efectos de texto */
+    .typing-text {
+      overflow: hidden;
+      white-space: nowrap;
+      border-right: 2px solid #008080;
+      animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+    }
+    
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+    
+    @keyframes blink-caret {
+      from, to { border-color: transparent }
+      50% { border-color: #008080; }
+    }
+    
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+    
+    .visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .delay-1 { transition-delay: 0.5s; }
+    .delay-2 { transition-delay: 1s; }
+    .delay-3 { transition-delay: 1.5s; }
+    .delay-4 { transition-delay: 2s; }
+    .delay-5 { transition-delay: 2.5s; }
+    .delay-6 { transition-delay: 0.5s; }
+    
+    /* Modal para subir fotos */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-content {
+      background-color: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #888;
+    }
+    
+    .photo-upload-area {
+      border: 2px dashed #008080;
+      border-radius: 8px;
+      padding: 25px;
+      margin: 15px 0;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .photo-upload-area:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .photo-preview {
+      max-width: 100%;
+      max-height: 200px;
+      margin-top: 15px;
+      display: none;
+      border-radius: 8px;
+    }
+    
+    .upload-status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #008080;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="envelope" id="envelope">
+      <div class="envelope-front">
+        <div class="flap"></div>
+        <div class="heart">❤</div><br><br><br>
+        <div class="invitation-text">Con mucho cariño te invitamos a nuestra boda</div>
+        <div class="names">Mariuxi & Pedro</div>
+        <div class="date-badge">1 de Noviembre 2025</div>
+      </div>
+      <div class="envelope-back"> <br><br><br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br><br><br>
+        <div class="names fade-in delay-6">Te invitamos a celebrar nuestro matrimonio</div>
+        <div class="names fade-in delay-1">Mariuxi Castro<br>&<br>Pedro Parrales</div>
+        
+        <div class="blessing fade-in delay-2">
+          Con la bendición de<br>
+          Juan Castro <span class="deceased">(+)</span> & Ketty Alava,<br>
+          Pedro Parrales & Flerida Chóez <span class="deceased">(+)</span>
+        </div>
+        
+        <div class="event-details fade-in delay-3">
+          <div class="event-title">
+            <i class="fas fa-church"></i>
+            <span>Ceremonia</span>
+          </div>
+          <div>Iglesia Santo Tomás de Aquino</div>
+          <div>1 de Noviembre - 3:00 PM</div>
+        </div>
+        
+        <div class="event-details fade-in delay-3">
+          <div class="event-title">
+            <i class="fas fa-glass-cheers"></i>
+            <span>Recepción</span>
+          </div>
+          <div>Portón Verde Florida Norte</div>
+          <div>1 de Noviembre - 7:00 PM</div>
+        </div>
+
+        <div class="event-details fade-in delay-4">
+          <div class="event-title">
+            <i class="fas fa-male"></i> <i class="fas fa-female"></i> <span>Código de vestimenta</span>
+          </div>
+          Hombres: Smoking o frac en tonos oscuros<br>
+          Mujeres: Vestidos largos (el blanco reservado para la novia)
+        </div>
+        
+        <div class="buttons fade-in delay-5">
+          <a href="https://www.google.com/maps/search/Iglesia+Santo+Tom%C3%A1s+de+Aquino" class="btn btn-location" target="_blank">Ubicación Ceremonia</a>
+          <a href="https://www.google.com/maps/place/El+Port%C3%B3n+Verde/@-2.1311823,-79.940971,17z" class="btn btn-location" target="_blank">Ubicación Recepción</a>
+          <a href="https://wa.me/593980006105" class="btn btn-confirm" target="_blank">Confirmar Asistencia</a>
+          <button class="btn btn-photos" id="btnUploadPhotos">Subir Fotos</button>
+        </div>
+        
+        <div class="event-details fade-in delay-5">
+          <strong>Video especial:</strong><br>
+          <iframe width="100%" height="200" src="video-boda.mp4" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="instruction">Haz clic en el sobre para abrir la invitación</div>
+  </div>
+
+  <!-- Modal para subir fotos -->
+  <div class="modal" id="photoModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModal">&times;</span>
+      <h2>Comparte tus fotos con nosotros</h2>
+      <p>Selecciona una foto para subirla a nuestro álbum de boda</p>
+      
+      <div class="photo-upload-area" id="dropArea">
+        <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #008080;"></i>
+        <p>Haz clic o arrastra una imagen aquí</p>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+      </div>
+      
+      <img id="photoPreview" class="photo-preview" alt="Vista previa">
+      
+      <div class="upload-status" id="uploadStatus"></div>
+      
+      <button class="btn btn-photos" id="btnSendPhoto" style="margin-top: 15px; display: none;">Enviar Foto</button>
+    </div>
+  </div>
+
+  <script>
+    const envelope = document.getElementById('envelope');
+    const photoModal = document.getElementById('photoModal');
+    const closeModal = document.getElementById('closeModal');
+    const btnUploadPhotos = document.getElementById('btnUploadPhotos');
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const photoPreview = document.getElementById('photoPreview');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const btnSendPhoto = document.getElementById('btnSendPhoto');
+    
+    // Abrir/cerrar el sobre
+    envelope.addEventListener('click', () => {
+      envelope.classList.toggle('open');
+      
+      // Si se abre el sobre, activar las animaciones de texto
+      if (envelope.classList.contains('open')) {
+        // Hacer visibles los elementos con fade-in
+        setTimeout(() => {
+          document.querySelectorAll('.fade-in').forEach(el => {
+            el.classList.add('visible');
+          });
+        }, 500);
+      } else {
+        // Si se cierra el sobre, ocultar los elementos
+        document.querySelectorAll('.fade-in').forEach(el => {
+          el.classList.remove('visible');
+        });
+      }
+    });
+    
+    // Abrir modal para subir fotos
+    btnUploadPhotos.addEventListener('click', (e) => {
+      e.stopPropagation();
+      photoModal.style.display = 'flex';
+    });
+    
+    // Cerrar modal
+    closeModal.addEventListener('click', () => {
+      photoModal.style.display = 'none';
+      resetUploadForm();
+    });
+    
+    // Cerrar modal al hacer clic fuera del contenido
+    window.addEventListener('click', (e) => {
+      if (e.target === photoModal) {
+        photoModal.style.display = 'none';
+        resetUploadForm();
+      }
+    });
+    
+    // Seleccionar archivo al hacer clic en el área de subida
+    dropArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    // Previsualizar imagen seleccionada
+    fileInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          photoPreview.src = e.target.result;
+          photoPreview.style.display = 'block';
+          btnSendPhoto.style.display = 'block';
+          uploadStatus.textContent = 'Imagen seleccionada: ' + file.name;
+        }
+        
+        reader.readAsDataURL(file);
+      }
+    });
+    
+    // Permitarr arrastrar y soltar archivos
+    dropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropArea.style.backgroundColor = '#f0f8ff';
+    });
+    
+    dropArea.addEventListener('dragleave', () => {
+      dropArea.style.backgroundColor = '';
+    });
+    
+    dropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropArea.style.backgroundColor = '';
+      
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        fileInput.files = e.dataTransfer.files;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          photoPreview.src = e.target.result;
+          photoPreview.style.display = 'block';
+          btnSendPhoto.style.display = 'block';
+          uploadStatus.textContent = 'Imagen seleccionada: ' + file.name;
+        }
+        
+        reader.readAsDataURL(file);
+      } else {
+        uploadStatus.textContent = 'Por favor, selecciona un archivo de imagen válido.';
+        uploadStatus.style.color = '#ff6b6b';
+      }
+    });
+    
+    // Enviar foto (simulación)
+    btnSendPhoto.addEventListener('click', () => {
+      // En una implementación real, aquí se enviaría la imagen a un servidor
+      uploadStatus.textContent = '¡Foto enviada con éxito! Gracias por compartir.';
+      uploadStatus.style.color = '#25D366';
+      
+      // Simular envío exitoso
+      setTimeout(() => {
+        photoModal.style.display = 'none';
+        resetUploadForm();
+      }, 2000);
+    });
+    
+    // Reiniciar formulario de subida
+    function resetUploadForm() {
+      fileInput.value = '';
+      photoPreview.style.display = 'none';
+      btnSendPhoto.style.display = 'none';
+      uploadStatus.textContent = '';
+      dropArea.style.backgroundColor = '';
+    }
+  </script>
+</body>
+</html>
